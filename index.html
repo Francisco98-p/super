@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ofertas Supermercados - Tu Ciudad</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-shopping-cart"></i>
+                <span>OfertasCiudad</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active" data-section="inicio">Inicio</a>
+                <a href="#" class="nav-link" data-section="supermercados">Supermercados</a>
+                <a href="#" class="nav-link" data-section="ofertas">Ofertas</a>
+                <a href="#" class="nav-link" data-section="changuitos">Changuitos</a>
+                <a href="#" class="nav-link" data-section="favoritos">Favoritos</a>
+            </nav>
+            <div class="header-actions">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar producto...">
+                </div>
+                <button class="btn-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Mi Ciudad</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Sección Inicio -->
+        <section id="inicio" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>Encontrá las mejores ofertas de tu ciudad</h1>
+                    <p>Compará precios de todos los supermercados y ahorrá en tu chango de comida</p>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number" id="totalSupermarkets">0</span>
+                            <span class="stat-label">Supermercados</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="totalOffers">0</span>
+                            <span class="stat-label">Ofertas</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="avgDiscount">0%</span>
+                            <span class="stat-label">Descuento Promedio</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <i class="fas fa-shopping-basket"></i>
+                </div>
+            </div>
+
+            <!-- Categorías -->
+            <div class="categories-section">
+                <h2>Categorías</h2>
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Ofertas Destacadas -->
+            <div class="featured-offers">
+                <div class="section-header">
+                    <h2>Ofertas Destacadas</h2>
+                    <a href="#" class="view-all" data-section="ofertas">Ver todas <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="offers-grid" id="featuredOffers">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección Supermercados -->
+        <section id="supermercados" class="section">
+            <div class="section-header">
+                <h2>Supermercados de la Ciudad</h2>
+            </div>
+            <div class="supermarkets-grid" id="supermarketsGrid">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Sección Ofertas -->
+        <section id="ofertas" class="section">
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label>Supermercado:</label>
+                    <select id="filterSupermarket">
+                        <option value="all">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Categoría:</label>
+                    <select id="filterCategory">
+                        <option value="all">Todas</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Ordenar por:</label>
+                    <select id="filterSort">
+                        <option value="discount">Mayor descuento</option>
+                        <option value="price-low">Precio: Menor a Mayor</option>
+                        <option value="price-high">Precio: Mayor a Menor</option>
+                        <option value="name">Nombre A-Z</option>
+                    </select>
+                </div>
+            </div>
+            <div class="offers-grid" id="allOffers">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Sección Favoritos -->
+        <section id="favoritos" class="section">
+            <div class="section-header">
+                <h2>Mis Favoritos</h2>
+            </div>
+            <div class="favorites-empty" id="favoritesEmpty">
+                <i class="fas fa-heart"></i>
+                <p>No tenés favoritos guardados</p>
+                <span>Guardá las ofertas que te interesen haciendo clic en el corazón</span>
+            </div>
+            <div class="offers-grid" id="favoritesOffers">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Sección Changuitos -->
+        <section id="changuitos" class="section">
+            <div class="section-header">
+                <h2>Changuitos del Mes</h2>
+                <p>Compara el costo de compras completas en diferentes supermercados</p>
+            </div>
+            <div class="changuitos-grid" id="changuitosGrid">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Producto -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+            <div class="modal-body">
+                <div class="modal-image">
+                    <img id="modalProductImage" src="" alt="">
+                    <i class="fas fa-box"></i>
+                    <span class="discount-badge" id="modalDiscount"></span>
+                </div>
+                <div class="modal-info">
+                    <span class="supermarket-tag" id="modalSupermarket"></span>
+                    <h3 id="modalProductName"></h3>
+                    <div class="modal-prices">
+                        <span class="old-price" id="modalOldPrice"></span>
+                        <span class="new-price" id="modalNewPrice"></span>
+                    </div>
+                    <p class="modal-description" id="modalDescription"></p>
+                    <div class="modal-meta">
+                        <span><i class="fas fa-tag"></i> <span id="modalCategory"></span></span>
+                        <span><i class="fas fa-calendar"></i> Válido hasta <span id="modalExpiry"></span></span>
+                    </div>
+                    <div class="modal-delivery-form" id="deliveryForm" style="display: none;">
+                        <h4>Datos de Envío</h4>
+                        <input type="text" id="orderAddress" placeholder="Dirección de entrega">
+                        <input type="text" id="orderPhone" placeholder="Teléfono de contacto">
+                        <select id="orderPayment">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta (en entrega)</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                        <button class="btn-confirm-delivery" id="btnConfirmOrder">Finalizar Pedido</button>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-delivery" id="modalDeliveryBtn">
+                            <i class="fas fa-truck"></i> Pedir por Delivery
+                        </button>
+                        <button class="btn-favorite" id="modalFavoriteBtn">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>OfertasCiudad</h3>
+                <p>Tu guía de ofertas de supermercados en la ciudad</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces</h4>
+                <a href="#">Inicio</a>
+                <a href="#">Supermercados</a>
+                <a href="#">Ofertas</a>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <a href="#">Agregar Supermercado</a>
+                <a href="#">Reportar error</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 OfertasCiudad - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <script src="data.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+</body>
+</html>

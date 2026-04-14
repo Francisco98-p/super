@@ -10,12 +10,14 @@ class OfertasApp {
         this.favorites = this.loadFavorites();
         this.currentSection = 'inicio';
         this.selectedCategory = null;
+        this.userLocation = null;
         
         this.init();
     }
 
     async init() {
         await this.loadData();
+        await this.initLocation();
         this.renderStats();
         this.renderCategories();
         this.renderSupermarkets();
@@ -59,6 +61,88 @@ class OfertasApp {
     // Guardar favoritos en localStorage
     saveFavorites() {
         localStorage.setItem('ofertasFavoritos', JSON.stringify(this.favorites));
+    }
+
+    // Inicializar geolocalización
+    async initLocation() {
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                console.log('Geolocation not supported');
+                resolve();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    console.log('User location found:', this.userLocation);
+                    resolve();
+                },
+                (error) => {
+                    console.log('Error getting location:', error.message);
+                    resolve();
+                },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+        });
+    }
+
+    // Calcular distancia entre dos puntos (Haversine formula)
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+        const R = 6371; // Radio de la Tierra en km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return parseFloat((R * c).toFixed(1));
+    }
+
+    // Obtener distancia a un supermercado
+    getDistanceToSupermarket(supermarket) {
+        if (!this.userLocation || !supermarket.coords) return null;
+        return this.calculateDistance(
+            this.userLocation.lat, 
+            this.userLocation.lng, 
+            supermarket.coords.lat, 
+            supermarket.coords.lng
+        );
+    }
+
+    // Mostrar toast con distancia
+    showDistanceToast(message) {
+        let toast = document.querySelector('.distance-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'distance-toast';
+            document.body.appendChild(toast);
+        }
+        
+        toast.innerHTML = `<i class="fas fa-location-dot"></i> <span>${message}</span>`;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Mostrar distancia de un supermercado específico al hacer clic
+    showSupermarketDistance(smId) {
+        const sm = this.getSupermarket(smId);
+        if (!sm) return;
+        
+        const distance = this.getDistanceToSupermarket(sm);
+        if (distance !== null) {
+            this.showDistanceToast(`${sm.name} está a ${distance} km de tu ubicación.`);
+        } else {
+            this.showDistanceToast(`No podemos calcular la distancia a ${sm.name}. Activa tu ubicación.`);
+        }
     }
 
     // Calcular descuento
@@ -111,18 +195,36 @@ class OfertasApp {
     // Renderizar supermercados
     renderSupermarkets() {
         const grid = document.getElementById('supermarketsGrid');
-        grid.innerHTML = this.data.supermarkets.map(sm => `
-            <div class="supermarket-card" data-supermarket="${sm.id}">
-                <div class="supermarket-logo" style="background: ${sm.color}">
-                    ${sm.icon}
+        
+        // Ordenar por distancia si hay ubicación
+        const sortedSm = [...this.data.supermarkets];
+        if (this.userLocation) {
+            sortedSm.sort((a, b) => {
+                const distA = this.getDistanceToSupermarket(a) || Infinity;
+                const distB = this.getDistanceToSupermarket(b) || Infinity;
+                return distA - distB;
+            });
+        }
+
+        grid.innerHTML = sortedSm.map(sm => {
+            const distance = this.getDistanceToSupermarket(sm);
+            const distanceHtml = distance !== null 
+                ? `<span class="distance-tag"><i class="fas fa-location-arrow"></i> a ${distance} km</span>` 
+                : '';
+            
+            return `
+                <div class="supermarket-card" data-supermarket="${sm.id}">
+                    <div class="supermarket-logo" style="background: ${sm.color}">
+                        ${sm.icon}
+                    </div>
+                    <div class="supermarket-info">
+                        <h3>${sm.name} ${distanceHtml}</h3>
+                        <p><i class="fas fa-map-marker-alt"></i> ${sm.address}</p>
+                        <span class="supermarket-offers">${sm.offers} ofertas disponibles</span>
+                    </div>
                 </div>
-                <div class="supermarket-info">
-                    <h3>${sm.name}</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> ${sm.address}</p>
-                    <span class="supermarket-offers">${sm.offers} ofertas disponibles</span>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     // Renderizar tarjeta de oferta
@@ -134,6 +236,11 @@ class OfertasApp {
         const imageHtml = offer.image 
             ? `<img src="${offer.image}" alt="${offer.product}">` 
             : `<i class="fas fa-box"></i>`;
+        
+        const distance = this.getDistanceToSupermarket(supermarket);
+        const distanceHtml = distance !== null 
+            ? `<span class="distance-info"><i class="fas fa-location-dot"></i> ${distance} km</span>` 
+            : '';
 
         return `
             <div class="offer-card" data-offer="${offer.id}">
@@ -143,6 +250,7 @@ class OfertasApp {
                     <button class="favorite-btn ${isFavorite ? 'active' : ''}" data-offer="${offer.id}">
                         <i class="fas fa-heart"></i>
                     </button>
+                    ${distanceHtml}
                 </div>
                 <div class="offer-info">
                     <span class="supermarket-tag" style="background: ${supermarket.color}">${supermarket.name}</span>
@@ -190,6 +298,15 @@ class OfertasApp {
         // Aplicar ordenamiento
         const sortBy = document.getElementById('filterSort').value;
         switch (sortBy) {
+            case 'distance':
+                if (this.userLocation) {
+                    filteredOffers.sort((a, b) => {
+                        const distA = this.getDistanceToSupermarket(this.getSupermarket(a.supermarketId)) || Infinity;
+                        const distB = this.getDistanceToSupermarket(this.getSupermarket(b.supermarketId)) || Infinity;
+                        return distA - distB;
+                    });
+                }
+                break;
             case 'discount':
                 filteredOffers.sort((a, b) => 
                     this.calculateDiscount(b.oldPrice, b.newPrice) - 
@@ -231,8 +348,38 @@ class OfertasApp {
         const grid = document.getElementById('changuitosGrid');
         if (!grid) return;
 
-        grid.innerHTML = this.data.changuitos.map(chan => {
+        let filteredChanguitos = [...this.data.changuitos];
+        const sortBy = document.getElementById('filterChanguitosSort')?.value || 'distance';
+
+        // Aplicar ordenamiento
+        switch (sortBy) {
+            case 'distance':
+                if (this.userLocation) {
+                    filteredChanguitos.sort((a, b) => {
+                        const distA = this.getDistanceToSupermarket(this.getSupermarket(a.supermarketId)) || Infinity;
+                        const distB = this.getDistanceToSupermarket(this.getSupermarket(b.supermarketId)) || Infinity;
+                        return distA - distB;
+                    });
+                }
+                break;
+            case 'price-low':
+                filteredChanguitos.sort((a, b) => a.totalPrice - b.totalPrice);
+                break;
+            case 'price-high':
+                filteredChanguitos.sort((a, b) => b.totalPrice - a.totalPrice);
+                break;
+            case 'name':
+                filteredChanguitos.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+        }
+
+        grid.innerHTML = filteredChanguitos.map(chan => {
             const supermarket = this.getSupermarket(chan.supermarketId);
+            const distance = this.getDistanceToSupermarket(supermarket);
+            const distanceHtml = distance !== null 
+                ? `<span class="distance-info"><i class="fas fa-location-dot"></i> ${distance} km</span>` 
+                : '';
+
             const itemsHtml = chan.items.map(item => `
                 <div class="changuito-item">
                     <span>${item.name}</span>
@@ -243,6 +390,7 @@ class OfertasApp {
             return `
                 <div class="changuito-card">
                     <div class="changuito-header" style="background: ${supermarket.color}">
+                        ${distanceHtml}
                         <div class="changuito-icon">
                             <i class="fas ${chan.icon}"></i>
                         </div>
@@ -391,6 +539,9 @@ class OfertasApp {
         document.getElementById('filterCategory').addEventListener('change', () => this.renderAllOffers());
         document.getElementById('filterSort').addEventListener('change', () => this.renderAllOffers());
 
+        // Changuitos sort
+        document.getElementById('filterChanguitosSort')?.addEventListener('change', () => this.renderChanguitos());
+
         // Buscador
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
@@ -425,6 +576,14 @@ class OfertasApp {
             if (offerCard) {
                 const offerId = parseInt(offerCard.dataset.offer);
                 this.openModal(offerId);
+                return;
+            }
+
+            // Click en supermercado
+            const smCard = e.target.closest('.supermarket-card');
+            if (smCard) {
+                const smId = parseInt(smCard.dataset.supermarket);
+                this.showSupermarketDistance(smId);
             }
         });
 
@@ -478,6 +637,24 @@ class OfertasApp {
                 console.error('Error al enviar el pedido:', error);
                 alert('Hubo un error al procesar tu pedido. Por favor, intenta de nuevo.');
             }
+        });
+
+        // Ubicación
+        document.getElementById('btnLocation').addEventListener('click', async () => {
+            const btn = document.getElementById('btnLocation');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            btn.disabled = true;
+            
+            await this.initLocation();
+            
+            this.renderSupermarkets();
+            this.renderFeaturedOffers();
+            this.renderAllOffers();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         });
     }
 

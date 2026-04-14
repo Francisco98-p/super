@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - OfertasCiudad</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin-sidebar: #1e293b;
+            --admin-bg: #f1f5f9;
+        }
+
+        body {
+            background-color: var(--admin-bg);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--admin-sidebar);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-menu {
+            padding: 1.5rem 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            color: white;
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .admin-main {
+            flex: 1;
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .admin-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .admin-content.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-info h3 {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-info span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Tables */
+        .admin-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-table-container {
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .admin-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pendiente { background: #fef3c7; color: #92400e; }
+        .status-entregado { background: #dcfce7; color: #166534; }
+        .status-cancelado { background: #fee2e2; color: #991b1b; }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-add:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-edit { background: #e0f2fe; color: #0369a1; }
+        .btn-delete { background: #fee2e2; color: #991b1b; }
+
+        /* Form */
+        .admin-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; }
+            .sidebar-header span, .menu-item span { display: none; }
+            .admin-main { margin-left: 80px; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .admin-main { margin-left: 0; }
+            .admin-form { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Admin Super</span>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active" data-tab="overview">
+                <i class="fas fa-chart-line"></i>
+                <span>Resumen</span>
+            </a>
+            <a href="#" class="menu-item" data-tab="orders">
+                <i class="fas fa-truck"></i>
+                <span>Pedidos</span>
+            </a>
+            <a href="#" class="menu-item" data-tab="offers">
+                <i class="fas fa-tag"></i>
+                <span>Mis Ofertas</span>
+            </a>
+            <a href="/" class="menu-item">
+                <i class="fas fa-external-link-alt"></i>
+                <span>Ver Sitio Público</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <p style="font-size: 0.7rem; color: #64748b;">v1.0.0 Admin Panel</p>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <div>
+                <h1 id="supermarketNameDisplay">Cargando...</h1>
+                <p id="currentDateDisplay"></p>
+            </div>
+            <div class="header-actions">
+                <select id="supermarketSelector" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <!-- Se llena dinámicamente -->
+                </select>
+            </div>
+        </header>
+
+        <!-- Pestaña Resumen -->
+        <section id="tab-overview" class="admin-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #6366f1;"><i class="fas fa-tag"></i></div>
+                    <div class="stat-info">
+                        <h3>Ofertas Activas</h3>
+                        <span id="statActiveOffers">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #10b981;"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-info">
+                        <h3>Pedidos Nuevos</h3>
+                        <span id="statNewOrders">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f59e0b;"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <h3>Ventas Estimadas</h3>
+                        <span id="statTotalSales">$0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #ec4899;"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3>Visitas Hoy</h3>
+                        <span>1.2k</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h2>Pedidos Recientes</h2>
+                    <button class="btn-add" onclick="switchTab('orders')">Ver todos</button>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Cliente</th>
+                                <th>Dirección</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersTable">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pestaña Pedidos -->
+        <section id="tab-orders" class="admin-content">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h2>Gestión de Pedidos</h2>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Dirección</th>
+                                <th>Teléfono</th>
+                                <th>Pago</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allOrdersTable">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pestaña Ofertas -->
+        <section id="tab-offers" class="admin-content">
+            <div class="admin-header">
+                <h2>Mis Ofertas Publicadas</h2>
+                <button class="btn-add" id="btnAddOffer">
+                    <i class="fas fa-plus"></i> Nueva Oferta
+                </button>
+            </div>
+
+            <div class="admin-card" id="offerFormSection" style="display: none; margin-bottom: 2rem;">
+                <div class="admin-card-header">
+                    <h3 id="formTitle">Agregar Nueva Oferta</h3>
+                    <button class="btn-icon" onclick="toggleOfferForm()"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="offerForm" class="admin-form">
+                    <div class="form-group">
+                        <label>Producto</label>
+                        <input type="text" id="offerProduct" required placeholder="Ej: Leche Entera 1L">
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="offerCategory" required>
+                            <!-- Se llena dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Original ($)</label>
+                        <input type="number" id="offerOldPrice" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Oferta ($)</label>
+                        <input type="number" id="offerNewPrice" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Expiración</label>
+                        <input type="text" id="offerExpiry" required placeholder="DD/MM/YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label>URL Imagen</label>
+                        <input type="url" id="offerImage" placeholder="https://...">
+                    </div>
+                    <div class="form-group full">
+                        <label>Descripción</label>
+                        <textarea id="offerDescription" rows="3" placeholder="Descripción detallada de la oferta..."></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <button type="submit" class="btn-add">Guardar Oferta</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="stats-grid" id="adminOffersGrid">
+                <!-- Se llena dinámicamente -->
+            </div>
+            
+            <div class="admin-card">
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Precio Ant.</th>
+                                <th>Precio Of.</th>
+                                <th>Descuento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="offersListTable">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>

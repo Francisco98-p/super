@@ -6,6 +6,7 @@ const supermarkets = [
         color: "#0044cc",
         icon: "C",
         address: "Av. Principal 123",
+        coords: { lat: -34.6037, lng: -58.3816 },
         offers: 45
     },
     {
@@ -14,6 +15,7 @@ const supermarkets = [
         color: "#e74c3c",
         icon: "C",
         address: "Av. Central 456",
+        coords: { lat: -34.6100, lng: -58.4000 },
         offers: 38
     },
     {
@@ -22,6 +24,7 @@ const supermarkets = [
         color: "#27ae60",
         icon: "J",
         address: "Shopping Local",
+        coords: { lat: -34.5400, lng: -58.4500 },
         offers: 52
     },
     {
@@ -30,6 +33,7 @@ const supermarkets = [
         color: "#f39c12",
         icon: "W",
         address: "Av. Norte 789",
+        coords: { lat: -34.5800, lng: -58.4200 },
         offers: 41
     },
     {
@@ -38,6 +42,7 @@ const supermarkets = [
         color: "#9b59b6",
         icon: "D",
         address: "Av. Sur 321",
+        coords: { lat: -34.6200, lng: -58.3900 },
         offers: 35
     },
     {
@@ -46,6 +51,7 @@ const supermarkets = [
         color: "#1abc9c",
         icon: "CM",
         address: "Av. Oeste 654",
+        coords: { lat: -34.6300, lng: -58.4100 },
         offers: 48
     }
 ];
@@ -132,9 +138,19 @@ const changuitos = [
 ];
 
 // Exportar datos
-window.appData = {
+const appData = {
     supermarkets,
     categories,
     offers,
     changuitos
 };
+
+// Para el navegador
+if (typeof window !== 'undefined') {
+    window.appData = appData;
+}
+
+// Para Node.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = appData;
+}

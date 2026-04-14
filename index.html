@@ -113,6 +113,7 @@
                 <div class="filter-group">
                     <label>Ordenar por:</label>
                     <select id="filterSort">
+                        <option value="distance">Más cercano</option>
                         <option value="discount">Mayor descuento</option>
                         <option value="price-low">Precio: Menor a Mayor</option>
                         <option value="price-high">Precio: Mayor a Menor</option>
@@ -143,8 +144,19 @@
         <!-- Sección Changuitos -->
         <section id="changuitos" class="section">
             <div class="section-header">
-                <h2>Changuitos del Mes</h2>
-                <p>Compara el costo de compras completas en diferentes supermercados</p>
+                <div>
+                    <h2>Changuitos del Mes</h2>
+                    <p>Compara el costo de compras completas en diferentes supermercados</p>
+                </div>
+                <div class="filter-group">
+                    <label>Ordenar por:</label>
+                    <select id="filterChanguitosSort">
+                        <option value="distance">Más cercano</option>
+                        <option value="price-low">Precio: Menor a Mayor</option>
+                        <option value="price-high">Precio: Mayor a Menor</option>
+                        <option value="name">Nombre A-Z</option>
+                    </select>
+                </div>
             </div>
             <div class="changuitos-grid" id="changuitosGrid">
                 <!-- Se llena dinámicamente -->
